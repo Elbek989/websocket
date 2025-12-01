@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Chat List</title>
+</head>
+<body>
+
+<h1>CHATS</h1>
+
+<ul>
+    {% for u in users %}
+        <li>
+            <a href="/chat/{{ u.id }}/">
+                {{ u.username }}
+            </a>
+        </li>
+    {% endfor %}
+</ul>
+
+</body>
+</html>

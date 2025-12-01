@@ -1,0 +1,25 @@
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const messageInputDom = document.getElementById('chat-message-input');
+    const messageSubmitDom = document.getElementById('chat-message-submit');
+
+    const roomName = "{{ room_name|escapejs }}";
+    const chatSocket = new WebSocket(`ws://${window.location.host}/ws/chat/${roomName}/`);
+
+    chatSocket.onmessage = function(e) {
+        const data = JSON.parse(e.data);
+        console.log('Serverdan kelgan data:', data)
+        const chatLog = document.getElementById('chat-log');
+        chatLog.innerHTML += `<p><b>${data.username}:</b> ${data.message}</p>`;
+        chatLog.scrollTop = chatLog.scrollHeight;
+    };
+
+    messageSubmitDom.onclick = function() {
+        const message = messageInputDom.value;
+        console.log('Sending message:', message);
+        if (message.trim() === "") return;
+        chatSocket.send(JSON.stringify({'message': message}));
+        messageInputDom.value = '';
+    };
+});
+</script>

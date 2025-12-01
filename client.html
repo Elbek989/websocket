@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+<body>
+<h2>2-foydalanuvchi Chat</h2>
+<input id="msg" placeholder="Type message">
+<button id="send">Send</button>
+<pre id="log"></pre>
+
+<script>
+const log = t => document.getElementById("log").textContent += t + "\n";
+const ws = new WebSocket("ws://localhost:8000/");
+
+ws.onopen = () => log("Connected to server");
+ws.onmessage = e => log("Friend: " + e.data);
+ws.onclose = () => log("Closed");
+
+document.getElementById("send").onclick = () => {
+    const msg = document.getElementById("msg").value;
+    if(msg){
+        ws.send(msg);
+        log("Me: " + msg);
+        document.getElementById("msg").value = "";
+    }
+};
+</script>
+</body>
+</html>
