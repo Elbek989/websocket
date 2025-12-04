@@ -2,42 +2,996 @@
 <html>
 <head>
     <title>Chat Room</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 20px auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+
+        h2 {
+            text-align: center;
+            margin-bottom: 20px;
+            color: #333;
+        }
+
+        #chat-log {
+            border: 1px solid #ddd;
+            height: 400px;
+            overflow-y: auto;
+            background: white;
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 8px;
+        }
+
+        .chat-message {
+            padding: 10px;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            transition: background-color 0.3s;
+        }
+
+        .chat-message:hover {
+            background-color: #f9f9f9;
+        }
+
+        .chat-message:last-child {
+            border-bottom: none;
+        }
+
+        .msg-check {
+            width: 18px;
+            height: 18px;
+            margin-top: 3px;
+            cursor: pointer;
+            display: none;
+        }
+
+        .message-content {
+            flex: 1;
+        }
+
+        .username {
+            font-weight: bold;
+            color: #2c3e50;
+        }
+
+        .message-text {
+            color: #333;
+            margin: 5px 0;
+        }
+
+        .message-time {
+            color: #999;
+            font-size: 12px;
+        }
+
+        /* Fayl yuklash uchun qo'shimcha stillar */
+        #file-upload-controls {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 10px;
+            align-items: center;
+            padding: 10px;
+            background: white;
+            border-radius: 8px;
+            border: 1px solid #ddd;
+        }
+
+        #file-input {
+            display: none;
+        }
+
+        .file-upload-btn {
+            background-color: #9b59b6;
+            color: white;
+            padding: 8px 16px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background-color 0.3s;
+        }
+
+        .file-upload-btn:hover {
+            background-color: #8e44ad;
+        }
+
+        #selected-filename {
+            color: #666;
+            font-size: 14px;
+            flex: 1;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .cancel-file-btn {
+            background-color: #95a5a6;
+            color: white;
+            padding: 8px 16px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background-color 0.3s;
+            display: none;
+        }
+
+        .cancel-file-btn:hover {
+            background-color: #7f8c8d;
+        }
+
+        /* Fayl va rasm ko'rsatish uchun stillar */
+        .file-message-container {
+            margin-top: 10px;
+            padding: 10px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            border: 1px solid #e9ecef;
+            max-width: 400px;
+        }
+
+        .image-message img {
+            max-width: 100%;
+            max-height: 300px;
+            border-radius: 8px;
+            margin-top: 5px;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .image-message img:hover {
+            transform: scale(1.02);
+        }
+
+        .file-message a {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            text-decoration: none;
+            color: #2c3e50;
+            padding: 8px 12px;
+            border-radius: 4px;
+            background: white;
+            border: 1px solid #ddd;
+            transition: background-color 0.3s;
+        }
+
+        .file-message a:hover {
+            background-color: #f0f0f0;
+        }
+
+        .file-icon {
+            font-size: 24px;
+        }
+
+        .file-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .file-name {
+            font-weight: bold;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .file-size {
+            font-size: 12px;
+            color: #666;
+        }
+
+        .file-download-btn {
+            background-color: #3498db;
+            color: white;
+            padding: 6px 12px;
+            border-radius: 4px;
+            font-size: 12px;
+            text-decoration: none;
+        }
+
+        .file-download-btn:hover {
+            background-color: #2980b9;
+        }
+
+        /* Progress bar */
+        .upload-progress {
+            width: 100%;
+            background: #ddd;
+            border-radius: 4px;
+            margin-top: 5px;
+            overflow: hidden;
+            display: none;
+        }
+
+        .progress-bar {
+            height: 20px;
+            background: #27ae60;
+            width: 0%;
+            transition: width 0.3s;
+            text-align: center;
+            color: white;
+            line-height: 20px;
+            font-size: 12px;
+        }
+
+        /* Modal for full-size image */
+        .image-modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.9);
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-content {
+            max-width: 90%;
+            max-height: 90%;
+        }
+
+        .close-modal {
+            position: absolute;
+            top: 20px;
+            right: 30px;
+            color: white;
+            font-size: 40px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        /* Controls */
+        .controls {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+
+        #chat-message-input {
+            flex: 1;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 16px;
+        }
+
+        button {
+            padding: 12px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s;
+        }
+
+        #chat-message-submit {
+            background-color: #3498db;
+            color: white;
+        }
+
+        #chat-message-submit:hover {
+            background-color: #2980b9;
+        }
+
+        #file-upload-submit {
+            background-color: #9b59b6;
+            color: white;
+            display: none;
+        }
+
+        #file-upload-submit:hover {
+            background-color: #8e44ad;
+        }
+
+        #chat-message-select {
+            background-color: #f39c12;
+            color: white;
+        }
+
+        #chat-message-select:hover {
+            background-color: #d35400;
+        }
+
+        #chat-message-delete {
+            background-color: #e74c3c;
+            color: white;
+            display: none;
+        }
+
+        #chat-message-delete:hover {
+            background-color: #c0392b;
+        }
+
+        #chat-message-cancel {
+            background-color: #95a5a6;
+            color: white;
+            display: none;
+        }
+
+        #chat-message-cancel:hover {
+            background-color: #7f8c8d;
+        }
+
+        /* Select mode */
+        .select-mode .chat-message {
+            background-color: #fffde7;
+            border-left: 3px solid #f39c12;
+            padding-left: 15px;
+        }
+
+        /* Notification */
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 20px;
+            border-radius: 4px;
+            color: white;
+            display: none;
+            z-index: 1000;
+            animation: fadeIn 0.3s;
+        }
+
+        .success {
+            background-color: #27ae60;
+        }
+
+        .error {
+            background-color: #e74c3c;
+        }
+
+        .info {
+            background-color: #3498db;
+        }
+
+        /* Select controls */
+        .select-controls {
+            display: none;
+            padding: 10px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            border: 1px solid #ddd;
+            margin-bottom: 10px;
+            align-items: center;
+            gap: 15px;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
 </head>
 <body>
-<h2>Room: {{ room_name }}</h2>
-<div id="chat-log" style="border:1px solid #ccc; height:200px; overflow:auto;"></div>
-<input id="chat-message-input" type="text" size="100">
-<button id="chat-message-submit">Send</button>
+
+<h2>Chat Room: <span id="room-name">{{ room_name }}</span></h2>
+
+<!-- Notifications -->
+<div id="notification" class="notification"></div>
+
+<!-- Image Modal -->
+<div id="imageModal" class="image-modal">
+    <span class="close-modal">&times;</span>
+    <img class="modal-content" id="modalImage">
+</div>
+
+<!-- File Upload Controls -->
+<div id="file-upload-controls">
+    <input type="file" id="file-input" accept="image/*,.pdf,.doc,.docx,.txt">
+    <button class="file-upload-btn" id="file-upload-btn">📁 Attach File</button>
+    <span id="selected-filename"></span>
+    <button class="cancel-file-btn" id="cancel-file-btn">Cancel</button>
+    <div id="upload-progress" class="upload-progress">
+        <div class="progress-bar">0%</div>
+    </div>
+</div>
+
+<!-- Chat Messages -->
+<div id="chat-log"></div>
+
+<!-- Main Controls -->
+<div class="controls">
+    <input id="chat-message-input" type="text" placeholder="Type your message..." autocomplete="off">
+    <button id="chat-message-submit">Send</button>
+    <button id="file-upload-submit">Upload File</button>
+    <button id="chat-message-select">Select Messages</button>
+</div>
+
+<!-- Select Controls -->
+<div class="select-controls" id="select-controls">
+    <button id="chat-message-delete">Delete Selected</button>
+    <button id="chat-message-cancel">Cancel</button>
+    <span id="selected-count" style="margin-left: auto; color: #666;">
+        Selected: <span>0</span> messages
+    </span>
+</div>
 
 <script>
+    // ========== GLOBAL VARIABLES ==========
     const roomName = "{{ room_name }}";
-    const chatSocket = new WebSocket(
-        "ws://" + window.location.host + "/ws/chat/" + roomName + "/"
-    );
+    let chatSocket = null;
+    let selectMode = false;
+    let selectedMessages = new Set();
+    let selectedFile = null;
 
-    chatSocket.onopen = function(e) {
-        console.log("WebSocket connection established!");
-    };
-    chatSocket.onmessage = function(e) {
-        const data = JSON.parse(e.data);
+    // ========== WEBSOCKET FUNCTIONS ==========
+    function initWebSocket() {
+        chatSocket = new WebSocket(
+            "ws://" + window.location.host + "/ws/chat/" + roomName + "/"
+        );
 
-        console.log(data);
+        chatSocket.onopen = function() {
+            console.log("✅ WebSocket connected");
+            showNotification("Connected to chat", "success");
+        };
 
-        const chatLog = document.getElementById('chat-log');
-        chatLog.innerHTML += "<b>" + data.username + ":</b> " + data.message + "<br>";
+        chatSocket.onmessage = handleWebSocketMessage;
+
+        chatSocket.onclose = function() {
+            console.log("❌ WebSocket disconnected");
+            showNotification("Disconnected. Reconnecting...", "error");
+            setTimeout(initWebSocket, 3000);
+        };
+
+        chatSocket.onerror = function(error) {
+            console.error("WebSocket error:", error);
+            showNotification("Connection error", "error");
+        };
+    }
+
+    function handleWebSocketMessage(e) {
+        try {
+            const data = JSON.parse(e.data);
+            console.log("📩 Received:", data);
+
+            // 1. DELETE ACTION
+            if (data.action === "delete") {
+                handleDeleteMessages(data.message_ids);
+                return;
+            }
+
+            // 2. ERROR MESSAGE
+            if (data.type === "error") {
+                showNotification(data.error, "error");
+                return;
+            }
+
+            // 3. FILE MESSAGE
+            if (data.type === "file") {
+                // Text message ham bor bo'lsa
+                if (data.message && data.message.trim()) {
+                    addMessage(data.username, data.message, data.id);
+                }
+                // Fayl xabarini qo'shish
+                addFileMessage(data.username, data.file_url, data.file_name, data.file_type, data.file_size, data.id);
+                return;
+            }
+
+            // 4. REGULAR MESSAGE
+            if (data.id && data.username && data.message) {
+                addMessage(data.username, data.message, data.id);
+                return;
+            }
+
+        } catch (error) {
+            console.error("Error parsing message:", error);
+        }
+    }
+
+    // ========== MESSAGE FUNCTIONS ==========
+    function addMessage(username, message, id = null) {
+        const chatLog = document.getElementById("chat-log");
+        const messageId = id || Date.now() + Math.random();
+
+        const messageDiv = document.createElement("div");
+        messageDiv.className = "chat-message";
+        messageDiv.dataset.id = messageId;
+
+        messageDiv.innerHTML = `
+            <input type="checkbox" class="msg-check">
+            <div class="message-content">
+                <div class="username">${escapeHtml(username)}</div>
+                <div class="message-text">${escapeHtml(message)}</div>
+                <div class="message-time">${new Date().toLocaleTimeString()}</div>
+            </div>
+        `;
+
+        chatLog.appendChild(messageDiv);
         chatLog.scrollTop = chatLog.scrollHeight;
-    };
 
-    chatSocket.onclose = function(e) {
-        console.error('Chat socket closed unexpectedly');
-    };
+        const checkbox = messageDiv.querySelector('.msg-check');
+        checkbox.addEventListener('change', function() {
+            if (this.checked) {
+                selectedMessages.add(messageId);
+            } else {
+                selectedMessages.delete(messageId);
+            }
+            updateSelectedCount();
+        });
 
-    document.getElementById('chat-message-submit').onclick = function() {
-        const input = document.getElementById('chat-message-input');
-        const message = input.value;
-        chatSocket.send(JSON.stringify({'message': message}));
-        input.value = '';
-    };
+        if (selectMode) {
+            checkbox.style.display = 'inline-block';
+        }
+    }
+
+    function addFileMessage(username, fileUrl, fileName, fileType, fileSize, id = null) {
+        const chatLog = document.getElementById("chat-log");
+        const messageId = id || Date.now() + Math.random();
+
+        const messageDiv = document.createElement("div");
+        messageDiv.className = "chat-message";
+        messageDiv.dataset.id = messageId;
+
+        // Format file size
+        const formattedSize = formatFileSize(fileSize);
+
+        // Check if it's an image
+        const isImage = fileType.startsWith('image/');
+
+        let fileContent = '';
+        if (isImage) {
+            fileContent = `
+                <div class="message-content">
+                    <div class="username">${escapeHtml(username)}</div>
+                    <div class="message-time">${new Date().toLocaleTimeString()}</div>
+                    <div class="file-message-container image-message">
+                        <img src="${fileUrl}" alt="${fileName}" onclick="openImageModal('${fileUrl}')">
+                        <div style="margin-top: 5px; font-size: 12px; color: #666;">
+                            ${fileName} (${formattedSize})
+                        </div>
+                    </div>
+                </div>
+            `;
+        } else {
+            fileContent = `
+                <div class="message-content">
+                    <div class="username">${escapeHtml(username)}</div>
+                    <div class="message-time">${new Date().toLocaleTimeString()}</div>
+                    <div class="file-message-container">
+                        <a href="${fileUrl}" target="_blank" download="${fileName}">
+                            <div class="file-icon">📎</div>
+                            <div class="file-info">
+                                <div class="file-name">${fileName}</div>
+                                <div class="file-size">${formattedSize}</div>
+                            </div>
+                            <div class="file-download-btn">Download</div>
+                        </a>
+                    </div>
+                </div>
+            `;
+        }
+
+        messageDiv.innerHTML = `
+            <input type="checkbox" class="msg-check">
+            ${fileContent}
+        `;
+
+        chatLog.appendChild(messageDiv);
+        chatLog.scrollTop = chatLog.scrollHeight;
+
+        const checkbox = messageDiv.querySelector('.msg-check');
+        checkbox.addEventListener('change', function() {
+            if (this.checked) {
+                selectedMessages.add(messageId);
+            } else {
+                selectedMessages.delete(messageId);
+            }
+            updateSelectedCount();
+        });
+
+        if (selectMode) {
+            checkbox.style.display = 'inline-block';
+        }
+    }
+
+    function formatFileSize(bytes) {
+        if (bytes === 0) return '0 Bytes';
+        const k = 1024;
+        const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+        const i = Math.floor(Math.log(bytes) / Math.log(k));
+        return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+    }
+
+    // ========== FILE UPLOAD FUNCTIONS ==========
+    function handleFileSelect(event) {
+        const file = event.target.files[0];
+        if (!file) {
+            resetFileSelection();
+            return;
+        }
+
+        // Check file size (max 10MB)
+        const maxSize = 10 * 1024 * 1024;
+        if (file.size > maxSize) {
+            showNotification("File size too large. Maximum 10MB", "error");
+            resetFileSelection();
+            return;
+        }
+
+        // Check file type
+        const allowedTypes = [
+            'image/jpeg', 'image/png', 'image/gif', 'image/webp',
+            'application/pdf',
+            'application/msword',
+            'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+            'text/plain'
+        ];
+
+        if (!allowedTypes.includes(file.type) && !file.type.startsWith('image/')) {
+            showNotification("File type not allowed. Only images, PDF, Word and text files are allowed", "error");
+            resetFileSelection();
+            return;
+        }
+
+        selectedFile = file;
+        document.getElementById('selected-filename').textContent = `Selected: ${file.name} (${formatFileSize(file.size)})`;
+        document.getElementById('cancel-file-btn').style.display = 'inline-block';
+
+        // Tugmalarni o'zgartirish
+        document.getElementById('file-upload-submit').style.display = 'inline-block';
+        document.getElementById('chat-message-submit').style.display = 'none';
+    }
+
+    function resetFileSelection() {
+        selectedFile = null;
+        document.getElementById('selected-filename').textContent = '';
+        document.getElementById('file-input').value = '';
+        document.getElementById('cancel-file-btn').style.display = 'none';
+        document.getElementById('upload-progress').style.display = 'none';
+
+        // Tugmalarni qayta tiklash
+        document.getElementById('file-upload-submit').style.display = 'none';
+        document.getElementById('chat-message-submit').style.display = 'inline-block';
+    }
+
+    async function uploadFile() {
+        if (!selectedFile) {
+            showNotification("Please select a file first", "error");
+            return;
+        }
+
+        const formData = new FormData();
+        formData.append('file', selectedFile);
+        formData.append('room_name', roomName);
+
+        const progressBar = document.querySelector('.progress-bar');
+        const progressContainer = document.getElementById('upload-progress');
+
+        try {
+            progressContainer.style.display = 'block';
+            progressBar.style.width = '0%';
+            progressBar.textContent = '0%';
+
+            const xhr = new XMLHttpRequest();
+
+            xhr.upload.addEventListener('progress', function(e) {
+                if (e.lengthComputable) {
+                    const percentComplete = (e.loaded / e.total) * 100;
+                    progressBar.style.width = percentComplete + '%';
+                    progressBar.textContent = Math.round(percentComplete) + '%';
+                }
+            });
+
+            xhr.onload = function() {
+                if (xhr.status === 200) {
+                    const data = JSON.parse(xhr.responseText);
+
+                    if (data.success) {
+                        // Text messageni olish
+                        const textInput = document.getElementById("chat-message-input");
+                        const textMessage = textInput.value.trim();
+
+                        // Fayl haqida xabar jo'natish
+                        if (chatSocket && chatSocket.readyState === WebSocket.OPEN) {
+                            chatSocket.send(JSON.stringify({
+                                type: 'file_message',
+                                file_url: data.file_url,
+                                file_name: data.file_name,
+                                file_type: data.file_type,
+                                file_size: data.file_size,
+                                message: textMessage || `Sent a file: ${data.file_name}`
+                            }));
+                        }
+
+                        showNotification("File uploaded successfully", "success");
+
+                        // Reset qilish
+                        resetFileSelection();
+                        textInput.value = "";
+                        textInput.focus();
+
+                    } else {
+                        throw new Error(data.error || 'Upload failed');
+                    }
+                } else {
+                    throw new Error('Upload failed with status: ' + xhr.status);
+                }
+            };
+
+            xhr.onerror = function() {
+                throw new Error('Network error');
+            };
+
+            xhr.open('POST', '/upload-file/');
+            xhr.setRequestHeader('X-CSRFToken', getCookie('csrftoken'));
+            xhr.send(formData);
+
+        } catch (error) {
+            console.error('Upload error:', error);
+            showNotification('Upload failed: ' + error.message, 'error');
+            progressContainer.style.display = 'none';
+            resetFileSelection();
+        }
+    }
+
+    // ========== TEXT MESSAGE FUNCTIONS ==========
+    function sendTextMessage() {
+        const input = document.getElementById("chat-message-input");
+        const message = input.value.trim();
+
+        if (!message) {
+            showNotification("Message cannot be empty", "error");
+            return;
+        }
+
+        if (chatSocket && chatSocket.readyState === WebSocket.OPEN) {
+            chatSocket.send(JSON.stringify({
+                message: message
+            }));
+            input.value = "";
+            input.focus();
+        } else {
+            showNotification("Not connected to chat", "error");
+        }
+    }
+
+    // ========== SELECT MODE FUNCTIONS ==========
+    function enterSelectMode() {
+        console.log("🎯 Entering select mode");
+        selectMode = true;
+        selectedMessages.clear();
+
+        // Asosiy controls ni o'chirish
+        document.getElementById('chat-message-select').style.display = 'none';
+        document.getElementById('chat-message-submit').style.display = 'none';
+        document.getElementById('file-upload-submit').style.display = 'none';
+        document.getElementById('chat-message-input').style.display = 'none';
+
+        // Select controls ni ko'rsatish
+        document.getElementById('select-controls').style.display = 'flex';
+        document.getElementById('chat-message-delete').style.display = 'inline-block';
+        document.getElementById('chat-message-cancel').style.display = 'inline-block';
+
+        // Barcha checkboxlarni ko'rsatish
+        document.querySelectorAll('.msg-check').forEach(cb => {
+            cb.style.display = 'inline-block';
+        });
+
+        // Chat log'ga class qo'shish
+        document.getElementById('chat-log').classList.add('select-mode');
+
+        // Count ni yangilash
+        updateSelectedCount();
+
+        showNotification('Select messages to delete. Click Delete Selected when done.', 'success');
+    }
+
+    function exitSelectMode() {
+        console.log("❌ Exiting select mode");
+        selectMode = false;
+        selectedMessages.clear();
+
+        // Asosiy controls ni ko'rsatish
+        document.getElementById('chat-message-select').style.display = 'inline-block';
+        document.getElementById('chat-message-submit').style.display = 'inline-block';
+        document.getElementById('chat-message-input').style.display = 'inline-block';
+        document.getElementById('file-upload-submit').style.display = 'none';
+
+        // Select controls ni yashirish
+        document.getElementById('select-controls').style.display = 'none';
+
+        // Barcha checkboxlarni yashirish
+        document.querySelectorAll('.msg-check').forEach(cb => {
+            cb.style.display = 'none';
+            cb.checked = false;
+        });
+
+        // Chat log'dan class olib tashlash
+        document.getElementById('chat-log').classList.remove('select-mode');
+
+        // Count ni yangilash
+        updateSelectedCount();
+    }
+
+    function updateSelectedCount() {
+        const countElem = document.querySelector('#selected-count span');
+        const deleteBtn = document.getElementById('chat-message-delete');
+
+        if (countElem) {
+            countElem.textContent = selectedMessages.size;
+
+            if (selectedMessages.size > 0) {
+                deleteBtn.disabled = false;
+                deleteBtn.style.opacity = '1';
+                deleteBtn.innerHTML = `Delete Selected (${selectedMessages.size})`;
+            } else {
+                deleteBtn.disabled = true;
+                deleteBtn.style.opacity = '0.5';
+                deleteBtn.innerHTML = 'Delete Selected';
+            }
+        }
+    }
+
+    function deleteSelectedMessages() {
+        if (selectedMessages.size === 0) {
+            showNotification("No messages selected", "error");
+            return;
+        }
+
+        const messageIds = Array.from(selectedMessages);
+        console.log("📤 Sending delete request:", messageIds);
+
+        if (chatSocket && chatSocket.readyState === WebSocket.OPEN) {
+            chatSocket.send(JSON.stringify({
+                action: "delete_messages",
+                message_ids: messageIds
+            }));
+
+            // Frontend'dan o'chirish
+            messageIds.forEach(id => {
+                const elem = document.querySelector(`.chat-message[data-id="${id}"]`);
+                if (elem) elem.remove();
+            });
+
+            exitSelectMode();
+            showNotification("Messages deleted successfully", "success");
+        } else {
+            showNotification("Not connected to server", "error");
+        }
+    }
+
+    function handleDeleteMessages(messageIds) {
+        console.log("🗑️ Deleting messages:", messageIds);
+
+        messageIds.forEach(id => {
+            const messageElem = document.querySelector(`.chat-message[data-id="${id}"]`);
+            if (messageElem) {
+                messageElem.remove();
+            }
+        });
+
+        messageIds.forEach(id => {
+            selectedMessages.delete(id);
+        });
+
+        updateSelectedCount();
+        showNotification(`${messageIds.length} message(s) deleted`, "success");
+    }
+
+    // ========== MODAL FUNCTIONS ==========
+    function openImageModal(imageUrl) {
+        const modal = document.getElementById('imageModal');
+        const modalImg = document.getElementById('modalImage');
+        modal.style.display = 'flex';
+        modalImg.src = imageUrl;
+    }
+
+    function closeImageModal() {
+        document.getElementById('imageModal').style.display = 'none';
+    }
+
+    // ========== UTILITY FUNCTIONS ==========
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+
+    function escapeHtml(text) {
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
+
+    function showNotification(message, type = "info") {
+        const notification = document.getElementById("notification");
+        notification.textContent = message;
+        notification.className = `notification ${type}`;
+        notification.style.display = "block";
+
+        setTimeout(() => {
+            notification.style.display = "none";
+        }, 3000);
+    }
+
+    // ========== EVENT LISTENERS ==========
+    document.addEventListener('DOMContentLoaded', function() {
+        console.log("📱 DOM loaded");
+
+        // WebSocket ni ishga tushirish
+        initWebSocket();
+
+        // File input
+        document.getElementById('file-input').addEventListener('change', handleFileSelect);
+
+        // File upload button
+        document.getElementById('file-upload-btn').addEventListener('click', function() {
+            document.getElementById('file-input').click();
+        });
+
+        // Cancel file selection
+        document.getElementById('cancel-file-btn').addEventListener('click', function() {
+            resetFileSelection();
+            showNotification("File selection cancelled", "info");
+        });
+
+        // Send text message
+        document.getElementById("chat-message-submit").addEventListener('click', sendTextMessage);
+
+        // Upload file
+        document.getElementById("file-upload-submit").addEventListener('click', uploadFile);
+
+        // Enter key press
+        document.getElementById("chat-message-input").addEventListener('keypress', function(e) {
+            if (e.key === 'Enter' && !selectedFile) {
+                sendTextMessage();
+            }
+        });
+
+        // Select mode
+        document.getElementById("chat-message-select").addEventListener('click', enterSelectMode);
+
+        // Delete selected
+        document.getElementById("chat-message-delete").addEventListener('click', deleteSelectedMessages);
+
+        // Cancel selection
+        document.getElementById("chat-message-cancel").addEventListener('click', exitSelectMode);
+
+        // Image modal
+        document.querySelector('.close-modal').addEventListener('click', closeImageModal);
+        document.getElementById('imageModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeImageModal();
+            }
+        });
+
+        // Input focus
+        document.getElementById("chat-message-input").focus();
+
+        // ESC key for cancel select mode
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape' && selectMode) {
+                exitSelectMode();
+            }
+        });
+    });
 </script>
+
 </body>
 </html>
